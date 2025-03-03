@@ -23,6 +23,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.AbstractMap;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -42,6 +43,7 @@ import org.apache.iceberg.transforms.UnknownTransform;
 import org.apache.iceberg.types.Type;
 import org.apache.iceberg.types.Types;
 import org.apache.iceberg.types.Types.StructType;
+import org.apache.iceberg.Schema;
 
 /**
  * Represents how to produce partition data for a table.
@@ -147,7 +149,7 @@ public class PartitionSpec implements Serializable {
    * #partitionType()} for a struct with field ID's potentially re-assigned to avoid conflict.
    */
   public StructType rawPartitionType() {
-    if (schema.idsToOriginal().isEmpty()) {
+    if (schema.idsToOriginal() == null || schema.idsToOriginal().isEmpty()) {
       // not re-assigned.
       return partitionType();
     }
@@ -287,7 +289,7 @@ public class PartitionSpec implements Serializable {
         if (fieldsBySourceId == null) {
           ListMultimap<Integer, PartitionField> multiMap =
               Multimaps.newListMultimap(
-                  Maps.newHashMap(), () -> Lists.newArrayListWithCapacity(fields.length));
+                  Collections.synchronizedMap(Maps.newHashMap()), () -> Lists.newArrayListWithCapacity(fields.length));
           for (PartitionField field : fields) {
             multiMap.put(field.sourceId(), field);
           }
@@ -475,7 +477,8 @@ public class PartitionSpec implements Serializable {
     private Builder year(Types.NestedField sourceColumn, String targetName) {
       checkAndAddPartitionName(targetName);
       PartitionField field =
-          new PartitionField(sourceColumn.fieldId(), nextFieldId(), targetName, Transforms.year());
+          new PartitionField(
+              sourceColumn.fieldId(), nextFieldId(), targetName, Transforms.year());
       checkForRedundantPartitions(field);
       fields.add(field);
       return this;
@@ -494,7 +497,8 @@ public class PartitionSpec implements Serializable {
     private Builder month(Types.NestedField sourceColumn, String targetName) {
       checkAndAddPartitionName(targetName);
       PartitionField field =
-          new PartitionField(sourceColumn.fieldId(), nextFieldId(), targetName, Transforms.month());
+          new PartitionField(
+              sourceColumn.fieldId(), nextFieldId(), targetName, Transforms.month());
       checkForRedundantPartitions(field);
       fields.add(field);
       return this;
@@ -513,7 +517,8 @@ public class PartitionSpec implements Serializable {
     private Builder day(Types.NestedField sourceColumn, String targetName) {
       checkAndAddPartitionName(targetName);
       PartitionField field =
-          new PartitionField(sourceColumn.fieldId(), nextFieldId(), targetName, Transforms.day());
+          new PartitionField(
+              sourceColumn.fieldId(), nextFieldId(), targetName, Transforms.day());
       checkForRedundantPartitions(field);
       fields.add(field);
       return this;
@@ -532,7 +537,8 @@ public class PartitionSpec implements Serializable {
     private Builder hour(Types.NestedField sourceColumn, String targetName) {
       checkAndAddPartitionName(targetName);
       PartitionField field =
-          new PartitionField(sourceColumn.fieldId(), nextFieldId(), targetName, Transforms.hour());
+          new PartitionField(
+              sourceColumn.fieldId(), nextFieldId(), targetName, Transforms.hour());
       checkForRedundantPartitions(field);
       fields.add(field);
       return this;
